@@ -13,13 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Docker Compose
-        uses: actions/setup-docker@v3
-
-      - name: Build the Docker Compose images
-        run: docker-compose build
-
-      - name: Push the Docker images
-        run: docker-compose push
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+    - name: Run Docker Compose up --build
+      run: docker-compose up --build

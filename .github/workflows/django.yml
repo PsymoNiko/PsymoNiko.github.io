@@ -3,7 +3,7 @@ name: Deploy GitHub Page and Run Docker Compose
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:

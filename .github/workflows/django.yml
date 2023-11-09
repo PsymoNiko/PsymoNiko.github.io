@@ -13,14 +13,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - name: Set up Docker Compose
+      uses: actions/setup-docker@v3
+
+    - name: Build Docker Compose images
+      run: docker-compose build
+    
+    - name: Run Docker Compose
+      run: docker-compose up -d
+
+    - name: Deploy GitHub Page
+      uses: actions/deploy-pages@v3
       with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Run Tests
-      run: |
-        docker compose up --build
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        public_key: ${{ secrets.PUBLIC_KEY }}

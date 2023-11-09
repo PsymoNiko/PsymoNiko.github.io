@@ -1,4 +1,4 @@
-name: Deploy GitHub Page and Run Docker Compose
+name: Deploy GitHub Page
 
 on:
   push:
@@ -18,11 +18,8 @@ jobs:
       - name: Build Docker Compose images
         run: docker-compose build
 
-      - name: Run Docker Compose
-        run: docker-compose up -d
-
       - name: Deploy GitHub Page
         uses: actions/deploy-pages@v3
-        # with:
-        #  github_token: ${{ secrets.GITHUB_TOKEN }}
-        #  public_key: ${{ secrets.PUBLIC_KEY }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          public_key: ${{ secrets.PUBLIC_KEY }}

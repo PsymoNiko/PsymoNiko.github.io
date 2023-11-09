@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chat:/app/chat
+      - ./core:/app/core
+    depends_on:
+      - chat_redis
+    networks:
+      - web_chat
+
+  chat_redis:
+    image: redis:latest
+    ports:
+      - "6372:6379"
+    networks:
+      - web_chat
+
+networks:
+  web_chat:

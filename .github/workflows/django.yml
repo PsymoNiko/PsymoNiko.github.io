@@ -20,7 +20,7 @@ jobs:
       - name: Run Docker Compose
         run: docker-compose up -d
       - name: Deploy GitHub Page
-        uses: actions/FREE_CHAT_COM@v3
+        uses: actions/FEDORA_TOKEN@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           public_key: ${{ secrets.PUBLIC_KEY }}

@@ -12,14 +12,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Docker Compose
-        uses: actions/setup-docker@v3
+      - name: Build site
+        run: hugo
 
-      - name: Build Docker Compose images
-        run: docker-compose build
-
-      - name: Deploy GitHub Page
-        uses: actions/deploy-pages@v3
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          public_key: ${{ secrets.PUBLIC_KEY }}
+          publish_branch: gh-pages
+          publish_dir: ./public

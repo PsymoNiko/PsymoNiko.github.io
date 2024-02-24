@@ -1,6 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.10
-
+FROM hub.hamdocker.ir/library/python:3.8
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

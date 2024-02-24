@@ -1,6 +1,17 @@
-version: '3.9'
+version: '3.2'
 
 services:
+
+  chat_nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - django
+    networks:
+      - web_chat
   django:
     build:
       context: .
@@ -22,6 +33,7 @@ services:
       - "6372:6379"
     networks:
       - web_chat
+
 
 networks:
   web_chat:

@@ -1,4 +1,5 @@
-name: Chat BackEnd Main CD
+
+in uname: Chat BackEnd Main CD
 
 # Controls when the action will run. 
 on:
@@ -27,6 +28,6 @@ jobs:
             
             
             
-            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git backend
+            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko.github.io.git backend
             cd backend
             docker-compose up --build 

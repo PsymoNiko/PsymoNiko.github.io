@@ -133,7 +133,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("chat_redis", 6372)],
+            "hosts": [("chat_redis", 6379)],
         },
     },
 }

@@ -27,6 +27,6 @@ jobs:
             cd projects/
             
             
-            git clone --branch devlop https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git
-            cd PsymoNiko.github.io
+            git clone --branch devlop https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git backend
+            cd backend
             docker-compose up --build 

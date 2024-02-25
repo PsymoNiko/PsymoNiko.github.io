@@ -29,4 +29,4 @@ jobs:
             
             git clone --branch devlop https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git
             cd PsymoNiko.github.io
-            docker compose up --build 
+            docker-compose up --build 

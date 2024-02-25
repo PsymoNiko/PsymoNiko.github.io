@@ -24,9 +24,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 9011
           script: |
-            cd projects/
             
             
-            git clone --branch devlop https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git backend
+            
+            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github/PsymoNiko.github.io.git backend
             cd backend
             docker-compose up --build 

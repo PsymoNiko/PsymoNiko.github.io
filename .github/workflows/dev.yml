@@ -26,8 +26,9 @@ jobs:
           port: 9011
           script: |
             
-            
-            
-            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko.github.io.git backend
+            rm -rf backend
+            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}https://https://github.com/PsymoNiko/PsymoNiko.github.io.git backend
             cd backend
             docker-compose up --build 
+
+#            git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko.github.io.git backend

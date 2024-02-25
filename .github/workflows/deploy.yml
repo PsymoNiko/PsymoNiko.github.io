@@ -3,7 +3,8 @@ name: Deploy to Docker
 on:
   push:
     branches:
-      - master
+#      - master
+      - dev
 
 jobs:
   deploy:
@@ -18,7 +19,8 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'latest' || github.ref }}
+#        tags: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'latest' || github.ref }}
+        tags: ${{ github.event_name == 'push' && github.ref == 'refs/heads/dev' && 'latest' || github.ref }}
 
     - name: Deploy to Docker environment
       run: |

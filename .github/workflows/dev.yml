@@ -29,8 +29,7 @@ jobs:
             cd ~/projects/chat/develop/
             
 
-            git clone -b dev git@github.com:PsymoNiko/PsymoNiko.github.io.git backend
-
-            # git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko.github.io.git backend
+            git clone -b dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko/PsymoNiko.github.io.git backend
+            
             cd backend
             docker-compose up --build 

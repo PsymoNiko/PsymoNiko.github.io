@@ -27,6 +27,8 @@ jobs:
           script: |
             
             cd ~/projects/chat/develop/
+
+            rm -rf backend
             
 
             git clone -b dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko/PsymoNiko.github.io.git backend

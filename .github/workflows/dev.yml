@@ -32,4 +32,4 @@ jobs:
             git clone -b dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko/PsymoNiko.github.io.git backend
             
             cd backend
-            docker-compose up --build 
+            docker compose up --build -d

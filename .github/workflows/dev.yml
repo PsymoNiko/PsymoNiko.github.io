@@ -26,7 +26,7 @@ jobs:
           port: 9011
           script: |
             
-            
+            cd ~/projects/chat/develop/
             
             git clone --branch dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko.github.io.git backend
             cd backend

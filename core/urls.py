@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from .views import handle_root_redirect
 
 urlpatterns = [
     path("chat/", include("chat.urls")),
     path('user/', include("accounts.urls")),
     path('admin/', admin.site.urls),
+    path('', handle_root_redirect, name='handle_root_redirect'),  # Redirect root to index
+
 ]

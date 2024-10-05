@@ -1,4 +1,3 @@
-version: '3.2'
 
 services:
 
@@ -15,15 +14,17 @@ services:
   django:
     build:
       context: .
-      dockerfile: Dockerfile
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      dockerfile: Dockerfile.dev
+        #command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     volumes:
-      - ./chat:/app/chat
-      - ./core:/app/core
+      - ./chat:/code/chat
+      - ./core:/code/core
+      - ./staticfiles:/code/staticfiles
     depends_on:
       - chat_redis
+      - chat_postgres
     networks:
       - web_chat
 
@@ -34,6 +35,39 @@ services:
     networks:
       - web_chat
 
+  chat_postgres:
+    image: harbor.devvops.ir/global/postgres
+    container_name: chat-develop-postgres-db-1
+    restart: always
+    environment:
+      - POSTGRES_USER=devAdmin
+      - POSTGRES_DB=hamresan_db_test
+      - POSTGRES_PASSWORD=mysecretpassword
+    ports:
+      - "5861:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - web_chat
+
+  minio:
+    image: minio/minio:latest
+    volumes:
+      - s3-volume:/data
+    ports:
+      - "9700:9000"
+      - "9701:9001"
+
+    expose:
+      - "9000"
+      - "9001"
+
+    networks:
+      - web_chat
+
+volumes:
+  postgres_data
+  s3-volume
 
 networks:
   web_chat:

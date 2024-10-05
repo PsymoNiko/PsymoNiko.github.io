@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     "rest_framework",
 
 ]
+CSRF_TRUSTED_ORIGINS = [
+    'http://130.185.73.246:8080',
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -76,12 +79,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-        "TEST": {
-            "NAME": BASE_DIR / "db.sqlite3",
-        },
+    'default': {
+        # 'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'ENGINE': "django.db.backends.postgresql",
+        'NAME': "chat_db",
+        'USER': "devAdmin",
+        'PASSWORD': "mysecretpassword",
+        'HOST': "chat_postgres",
+        'PORT': 5861,
     }
 }
 
@@ -117,10 +122,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "chat/static",
-]
+STATIC_URL = '/static/'
+#STATICFILES_DIRS = [
+#    BASE_DIR / "chat/static",
+#]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

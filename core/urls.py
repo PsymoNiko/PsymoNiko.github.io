@@ -17,6 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .views import handle_root_redirect
+from django.conf.urls.static import static
+from django.conf import settings
+
 
 urlpatterns = [
     path("chat/", include("chat.urls")),
@@ -24,4 +27,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', handle_root_redirect, name='handle_root_redirect'),  # Redirect root to index
 
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

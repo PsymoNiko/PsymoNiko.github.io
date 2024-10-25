@@ -57,4 +57,3 @@ urllib3==2.0.6
 wcwidth==0.2.8
 wsproto==1.2.0
 zope.interface==6.1
-gunicorn

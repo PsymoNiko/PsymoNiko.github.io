@@ -14,13 +14,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-#    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     volumes:
       - ./chat:/code/chat
       - ./core:/code/core
-      - ./static:/code/static
     depends_on:
       - chat_redis
     networks:

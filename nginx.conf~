@@ -33,14 +33,14 @@ http {
         #     proxy_set_header X-Real-IP $remote_addr;
         # }
         location /static/ {
-          alias /code/core/staticfiles/;  # Update this path
+          alias /core/staticfiles/;  # Update this path
           autoindex off;
         }
   
-        #location /static/ {
-        #    autoindex off;
-        #    alias /app/static;
-        #}
+        location /static/ {
+            autoindex off;
+            alias /app/static;
+        }
     }
 }
 

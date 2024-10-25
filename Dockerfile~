@@ -24,4 +24,3 @@ EXPOSE 8000
 
 # Define the command to run the application
 #CMD ["gunicorn", "-b", "0.0.0.0:8000", "core.wsgi:application"]
-CMD ["sh", "/code/migrate_run.sh"]

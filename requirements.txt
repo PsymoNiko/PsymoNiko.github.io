@@ -1,4 +1,5 @@
 asgiref==3.7.2
+python-environ
 asttokens==2.4.0
 attrs==23.1.0
 Automat==22.10.0
@@ -57,5 +58,5 @@ wsproto==1.2.0
 zope.interface==6.1
 gunicorn
 psycopg2-binary
-boto3~=1.26.106
+#boto3~=1.26.106
 django-storages~=1.13.2

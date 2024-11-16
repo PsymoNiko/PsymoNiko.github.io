@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
-import environ
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -19,9 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-env = environ.Env()
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = 'django-insecure-@)u+v@7c4x3&0@(6v&c2z7r(^mh*0+123nvc5!4=&(@&%a34ov'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,7 +42,7 @@ INSTALLED_APPS = [
 
 ]
 CSRF_TRUSTED_ORIGINS = [
-    'http://localhost', "https://localhost",
+    'http://130.185.73.246:8080',
 ]
 
 MIDDLEWARE = [
@@ -84,11 +82,11 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'ENGINE': "django.db.backends.postgresql",
-        'NAME': env("DB_NAME"),
-        'USER': env("DB_USER"),
-        'PASSWORD': env("DB_PASSWORD"),
-        'HOST': env("DB_HOST"),
-        'PORT': env("DB_PORT"),
+        'NAME': "chat_db",
+        'USER': "devAdmin",
+        'PASSWORD': "mysecretpassword",
+        'HOST': "chat_postgres",
+        'PORT': 5861,
     }
 }
 
@@ -129,7 +127,6 @@ STATIC_URL = '/static/'
 #    BASE_DIR / "chat/static",
 #]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 

@@ -5,23 +5,37 @@ services:
     image: nginx:latest
     ports:
       - "8080:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/code/static
+      - ./alimohammadnia.html:/code/index.html
+      - /home/me/self-signed/fullchain.pem:/etc/ssl/certs/fullchain.pem  # SSL certificate
+      - /home/me/self-signed/privkey.pem:/etc/ssl/private/privkey.pem  # SSL key
     depends_on:
       - django
     networks:
       - web_chat
   django:
+    # dns:
+    #   - 10.202.10.202
+    #   - 10.202.10.102
     build:
       context: .
       dockerfile: Dockerfile.dev
         #command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    # extra_hosts:
+    # - "my-local-service:192.168.1.102"
+
+
     ports:
       - "8000:8000"
     volumes:
       - ./chat:/code/chat
       - ./core:/code/core
-      - ./staticfiles:/code/staticfiles
+      - ./staticfiles:/code/static
+      - ./.env:/code/.env 
+    env_file: ./.env
     depends_on:
       - chat_redis
       - chat_postgres
@@ -36,7 +50,7 @@ services:
       - web_chat
 
   chat_postgres:
-    image: harbor.devvops.ir/global/postgres
+    image: postgres:latest
     container_name: chat-develop-postgres-db-1
     restart: always
     environment:
@@ -46,14 +60,14 @@ services:
     ports:
       - "5861:5432"
     volumes:
-      - ./postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - web_chat
 
   minio:
     image: minio/minio:latest
     volumes:
-      - s3-volume:/data
+      - ./s3-volume:/data
     ports:
       - "9700:9000"
       - "9701:9001"
@@ -66,8 +80,8 @@ services:
       - web_chat
 
 volumes:
-  postgres_data
-  s3-volume
+  postgres_data:
+  s3-volume:
 
 networks:
   web_chat:

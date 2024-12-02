@@ -6,6 +6,43 @@
     <meta charset="utf-8"/>
     <link rel="stylesheet" type="text/css" href="{% static 'chat/styles.css' %}">
     <title>Fancy Chat Room</title>
+    <style>
+        #chat-log {
+            max-height: 400px; /* Set a max height for the chat log */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin-bottom: 20px; /* Space below the chat log */
+        }
+        .message {
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Center items vertically */
+            margin: 10px 0; /* Space between messages */
+        }
+        .own-message {
+            justify-content: flex-end; /* Align own messages to the right */
+        }
+        .other-message {
+            justify-content: flex-start; /* Align other messages to the left */
+        }
+        .message-content {
+            padding: 10px; /* Padding inside the message box */
+            border-radius: 10px; /* Rounded corners */
+            max-width: 60%; /* Limit the width of the message box */
+        }
+        .own-message .message-content {
+            background-color: #d4edda; /* Light green background for own messages */
+            color: #155724; /* Dark green text color */
+        }
+        .other-message .message-content {
+            background-color: #ffffff; /* White background for other messages */
+            color: #000000; /* Black text color */
+        }
+        .avatar {
+            width: 30px; /* Adjust size as needed */
+            height: 30px; /* Adjust size as needed */
+            border-radius: 50%; /* Make it circular */
+            margin-right: 5px; /* Space between avatar and text */
+        }
+    </style>
 </head>
 <body>
 <div id="chat-container">
@@ -14,7 +51,7 @@
         <a href="{% url 'logout' %}">Logout</a>
     </div>
     <div id="chat-log"></div>
-        <p id="login-info">You are logged in as {{ request.user.phone_number }}</p>
+    <p id="login-info">You are logged in as {{ request.user.phone_number }}</p>
 
     <input id="chat-message-input" type="text" placeholder="Type your message...">
     <button id="chat-message-submit">Send</button>
@@ -22,6 +59,7 @@
 <script>
     const roomName = "{{ room_name }}";
     const phone_number = "{{ request.user.phone_number }}";
+    const avatar = "{{ request.user.avatar.file.url }}";
 
     const chatSocket = new WebSocket(
         'ws://'
@@ -38,9 +76,20 @@
 
         const chatLog = document.querySelector('#chat-log');
         const isOwnMessage = data.phone_number === phone_number;
-        const messageClass = isOwnMessage ? 'own-message' : '';
-        chatLog.innerHTML += `<div class="${messageClass}">${data.phone_number}: ${data.message}</div>`;
-        chatLog.scrollTop = chatLog.scrollHeight;
+
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isOwnMessage ? 'own-message' : 'other-message'}`;
+
+        // Create message content
+        const messageContentDiv = document.createElement('div');
+        messageContentDiv.className = 'message-content';
+        messageContentDiv.innerHTML = `<img src="${isOwnMessage ? avatar : data.avatar}" alt="Avatar" class="avatar" />
+            ${data.phone_number}: ${data.message}`;
+
+        messageDiv.appendChild(messageContentDiv);
+        chatLog.appendChild(messageDiv);
+        chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
     };
 
     chatSocket.onclose = function (e) {
@@ -59,7 +108,8 @@
         const message = messageInputDom.value;
         chatSocket.send(JSON.stringify({
             'message': message,
-            'phone_number': phone_number
+            'phone_number': phone_number,
+            'avatar': avatar
         }));
         messageInputDom.value = '';
     };

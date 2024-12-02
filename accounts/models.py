@@ -49,6 +49,7 @@ class User(AbstractBaseUser):
     date_of_birth = models.DateField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    avatar = models.ForeignKey("basement.UploadFile", on_delete=models.CASCADE, null=True, blank=True)
 
     objects = MyUserManager()
 

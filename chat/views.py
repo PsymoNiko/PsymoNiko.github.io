@@ -11,4 +11,7 @@ def index(request):
 @login_required
 def room(request, room_name):
     phone_number = request.user.phone_number  # Assuming you are using Django's built-in authentication
+    avatar = request.user.avatar.file.url
+    print("skldfjslkfjsdlkjklsdjflksdjflsdfjl")
+    print(avatar)
     return render(request, "chat/room.html", {"room_name": room_name, "phone_number": phone_number})

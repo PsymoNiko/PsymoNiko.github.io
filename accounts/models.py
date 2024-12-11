@@ -2,6 +2,8 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.db import models
 from django.contrib.auth.hashers import make_password
 
+from basement.models import MyBaseModel
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, phone_number, date_of_birth, password=None):
@@ -74,3 +76,22 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class Account(MyBaseModel):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='account', blank=True, null=True)
+    balance = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+
+    # def __str__(self):
+        # return f"{self.user.phone_number}-{self.balance}"
+#
+
+class Transaction(MyBaseModel):
+    sender = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='outgoing_transactions', blank=True,
+                               null=True)
+    receiver = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='incoming_transactions', blank=True,
+                                 null=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+    status = models.CharField(max_length=20,
+                              choices=[('PENDING', 'Pending'), ('SUCCESS', 'Success'), ('FAILED', 'Failed')],
+                              blank=True, null=True)

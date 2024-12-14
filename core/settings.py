@@ -1,8 +1,12 @@
 import os
-import environ
 from pathlib import Path
+import environ
 from datetime import timedelta
 from dotenv import load_dotenv
+import django.db.models.signals
+
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 # Load environment variables from .env file
@@ -162,7 +166,7 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             # "hosts": [("127.0.0.1", 6379)],
             #"hosts": [("chat_redis", 6379)],
-            "hosts": [("172.17.0.1", 6379)],
+            "hosts": [(os.getenv("REDIS_HOST"), os.getenv("REDIS_PORT"))],
         },
     },
 }
@@ -306,3 +310,22 @@ LOGIN_URL = '/user/login/'
 #         },
 #     },
 # }
+
+
+
+sentry_sdk.init(
+    # ...
+    integrations=[
+        DjangoIntegration(
+            transaction_style='url',
+            middleware_spans=True,
+            signals_spans=True,
+            signals_denylist=[
+                django.db.models.signals.pre_init,
+                django.db.models.signals.post_init,
+            ],
+            cache_spans=False,
+            http_methods_to_capture=("GET",),
+        ),
+    ],
+)

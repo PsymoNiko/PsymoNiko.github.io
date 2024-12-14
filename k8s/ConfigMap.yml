@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: django-env
+data:
+  DJANGO_SECRET_KEY: your_secret_key
+  DJANGO_DEBUG: "False"
+  DATABASE_URL: postgres://devAdmin:mysecretpassword@chat-postgres:5432/dbname
+  REDIS_URL: redis://chat-redis:6379/0
+

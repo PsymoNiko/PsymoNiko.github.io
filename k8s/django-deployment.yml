@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-chat-backend
+  labels:
+    app: django-chat-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django-chat-backend
+  template:
+    metadata:
+      labels:
+        app: django-chat-backend
+    spec:
+      containers:
+        - name: django-chat-backend
+          image: django-chat-backend:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: django-env
+          volumeMounts:
+            - name: static-files
+              mountPath: /code/static
+      volumes:
+        - name: static-files
+          emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-chat-backend
+spec:
+  selector:
+    app: django-chat-backend
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: LoadBalancer
+

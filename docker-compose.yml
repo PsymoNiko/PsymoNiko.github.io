@@ -50,7 +50,6 @@ services:
     networks:
       - web_chat
 
-  # Primary PostgreSQL service for application data
   chat_postgres:
     image: postgres:latest
     container_name: chat-develop-postgres-db-1
@@ -80,17 +79,26 @@ services:
     networks:
       - web_chat
 
-  # Minio service
   minio:
     image: minio/minio:latest
     volumes:
       - ./s3-volume:/data
     ports:
-      - "9700:9000"
-      - "9701:9001"
+      - "9700:9000"  # Minio API
+      - "9701:9001"  # Minio Console
     expose:
-      - "9000"
-      - "9001"
+      - "9000"  # Internal API
+      - "9001"  # Internal Console
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: server /data  # Specify the command to start the Minio server
     networks:
       - web_chat
 
@@ -221,12 +229,13 @@ services:
     ports:
       - "9900:9000"
     environment:
-      - SENTRY_SECRET_KEY=your-secret-key
-      - SENTRY_DB_HOST=postgres
+      - SENTRY_SECRET_KEY=slkdfselkofmsdlmfvl;skdmfksdjmfk;lsdmlvf;smdlknkjzfhnksjdkgjdfnjkbngjdfnbgv
+      - SENTRY_DB_HOST=172.19.0.1
       - SENTRY_DB_NAME=sentry
-      - SENTRY_DB_USER=sentry
-      - SENTRY_DB_PASSWORD=sentrypassword
-      - SENTRY_REDIS_HOST=redis
+      - SENTRY_DB_PORT=5861
+      - SENTRY_DB_USER=devAdmin
+      - SENTRY_DB_PASSWORD=mysecretpassword
+      - SENTRY_REDIS_HOST=chat_redis
     depends_on:
       - chat_postgres
       - chat_redis

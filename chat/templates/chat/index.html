@@ -1,19 +1,90 @@
 <!-- chat/templates/chat/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
     <title>Chat Rooms</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #chat-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        #room-name-input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        #room-name-submit {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #room-name-submit:hover {
+            background-color: #45a049;
+        }
+
+        #logout-section {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #logout-section a {
+            text-decoration: none;
+            color: #4caf50;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #logout-section a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="room-name-submit" type="button" value="Enter">
+    <div id="chat-container">
+        {% if user.is_authenticated %}
+            <div id="logout-section">
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+            <p>Welcome, {{ user.username }}!</p>
+        {% endif %}
+        <h2>What chat room would you like to enter?</h2>
+        <p id="login-info">You are logged in as {{ request.user.phone_number }}</p>
+
+        <input id="room-name-input" type="text" placeholder="Enter room name">
+        <br>
+        <button id="room-name-submit">Enter</button>
+    </div>
 
     <script>
         document.querySelector('#room-name-input').focus();
         document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
+            if (e.key === 'Enter') {
                 document.querySelector('#room-name-submit').click();
             }
         };

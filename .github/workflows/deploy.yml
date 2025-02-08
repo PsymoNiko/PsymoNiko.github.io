@@ -1,23 +1,28 @@
-name: Deploy GitHub Page
+name: Deploy to Docker
 
 on:
   push:
     branches:
-      - master
+  ###   - master
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Build site
-        run: hugo
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && 'latest' || github.ref }}
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_branch: gh-pages
-          publish_dir: ./public
+    - name: Deploy to Docker environment
+      run: |
+#        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#        docker pull your-docker-image:latest  # Change this to your Docker image name
+#        docker run -d -p 8000:8000 --name your-container-name your-docker-image:latest
+         docker

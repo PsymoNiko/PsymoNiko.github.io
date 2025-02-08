@@ -1,0 +1,31 @@
+name: Chat BackEnd Main CD
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: dev
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+
+      - name: Priority List
+        uses: iterative/priority-list@v1.0.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repos: 'PsymoNiko/PsymoNiko.github.io'
+          weight_activity: 14
+          weight_reactions: 7
+          weight_staleness: 1
+          weight_age: 0.142857
+          multiplier_pr: 7
+          multiplier_labels: 'example:-1 epic:0.142857 blocked:0.142857 invalid:0.142857'
+          p_label_graveyard: 4
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}

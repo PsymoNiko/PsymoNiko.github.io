@@ -1,50 +1,118 @@
+{% load static %}
 <!-- chat/templates/chat/room.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'chat/styles.css' %}">
+    <title>Fancy Chat Room</title>
+    <style>
+        #chat-log {
+            max-height: 400px; /* Set a max height for the chat log */
+            overflow-y: auto; /* Enable vertical scrolling */
+            margin-bottom: 20px; /* Space below the chat log */
+        }
+        .message {
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Center items vertically */
+            margin: 10px 0; /* Space between messages */
+        }
+        .own-message {
+            justify-content: flex-end; /* Align own messages to the right */
+        }
+        .other-message {
+            justify-content: flex-start; /* Align other messages to the left */
+        }
+        .message-content {
+            padding: 10px; /* Padding inside the message box */
+            border-radius: 10px; /* Rounded corners */
+            max-width: 60%; /* Limit the width of the message box */
+        }
+        .own-message .message-content {
+            background-color: #d4edda; /* Light green background for own messages */
+            color: #155724; /* Dark green text color */
+        }
+        .other-message .message-content {
+            background-color: #ffffff; /* White background for other messages */
+            color: #000000; /* Black text color */
+        }
+        .avatar {
+            width: 30px; /* Adjust size as needed */
+            height: 30px; /* Adjust size as needed */
+            border-radius: 50%; /* Make it circular */
+            margin-right: 5px; /* Space between avatar and text */
+        }
+    </style>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
-    <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+<div id="chat-container">
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/chat/'
-            + roomName
-            + '/'
-        );
+    <div id="logout-section">
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+    <div id="chat-log"></div>
+    <p id="login-info">You are logged in as {{ request.user.phone_number }}</p>
 
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
-        };
+    <input id="chat-message-input" type="text" placeholder="Type your message...">
+    <button id="chat-message-submit">Send</button>
+</div>
+<script>
+    const roomName = "{{ room_name }}";
+    const phone_number = "{{ request.user.phone_number }}";
+    const avatar = "{{ request.user.avatar.file.url }}";
 
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/ws/chat/'
+        + roomName
+        + '/'
+    );
 
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
-                document.querySelector('#chat-message-submit').click();
-            }
-        };
+    chatSocket.onmessage = function (e) {
+        console.log('Received WebSocket message:', e.data);
+        const data = JSON.parse(e.data);
+        console.log('Parsed data:', data);
 
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';
-        };
-    </script>
+        const chatLog = document.querySelector('#chat-log');
+        const isOwnMessage = data.phone_number === phone_number;
+
+        // Create message element
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${isOwnMessage ? 'own-message' : 'other-message'}`;
+
+        // Create message content
+        const messageContentDiv = document.createElement('div');
+        messageContentDiv.className = 'message-content';
+        messageContentDiv.innerHTML = `<img src="${isOwnMessage ? avatar : data.avatar}" alt="Avatar" class="avatar" />
+            ${data.phone_number}: ${data.message}`;
+
+        messageDiv.appendChild(messageContentDiv);
+        chatLog.appendChild(messageDiv);
+        chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+    };
+
+    chatSocket.onclose = function (e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function (e) {
+        if (e.key === 'Enter') {
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function () {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'phone_number': phone_number,
+            'avatar': avatar
+        }));
+        messageInputDom.value = '';
+    };
+</script>
 </body>
 </html>

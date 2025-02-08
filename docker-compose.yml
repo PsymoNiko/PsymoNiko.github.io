@@ -1,21 +1,46 @@
-version: '3.9'
-
 services:
-  django:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+  # Nginx service
+  chat_nginx:
+    image: nginx:latest
     ports:
-      - "8000:8000"
+      - "8080:80"
+      - "443:443"
     volumes:
-      - ./chat:/app/chat
-      - ./core:/app/core
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/code/static
+      - /home/me/self-signed/fullchain.pem:/etc/ssl/certs/fullchain.pem  # SSL certificate
+      - /home/me/self-signed/privkey.pem:/etc/ssl/private/privkey.pem  # SSL key
     depends_on:
-      - chat_redis
+      - django
     networks:
       - web_chat
 
+  # Django service
+  django:
+    container_name: "django-chat-backend"
+    dns:
+      - 10.202.10.202
+      - 10.202.10.102
+    build: .
+#      context: .
+#      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chat:/code/chat
+      - ./core:/code/core
+      - ./staticfiles:/code/static
+      - ./.env:/code/.env
+    env_file: ./.env
+    depends_on:
+      - chat_redis
+      - chat_postgres
+ #     - chat_logs_postgres
+#      - jaeger-agent
+    networks:
+      - web_chat
+
+  # Redis service
   chat_redis:
     image: redis:latest
     ports:
@@ -23,18 +48,252 @@ services:
     networks:
       - web_chat
 
-  nginx:
-    image: nginx:latest
+  chat_postgres:
+    image: postgres:latest
+    container_name: chat-develop-postgres-db-1
+    restart: always
+    environment:
+      - POSTGRES_USER=devAdmin
+      - POSTGRES_PASSWORD=mysecretpassword
     ports:
-      - "80:80"  # Forwarding port 80 on the host to port 80 on the Nginx container
+      - "5861:5432"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Mounting custom Nginx configuration
-    depends_on:
-      - django
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web_chat
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devAdmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Second PostgreSQL service for storing logs
+  chat_logs_postgres:
+    image: postgres:latest
+    container_name: chat-develop-postgres-logs-db-1
+    restart: always
+    environment:
+      - POSTGRES_USER=devAdmin
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=devAdmin
+    ports:
+      - "5862:5432"
+    volumes:
+      - logs_postgres_data:/var/lib/postgresql/data
+    networks:
+      - web_chat
+
+  minio:
+    image: minio/minio:latest
+    volumes:
+      - ./s3-volume:/data
+    ports:
+      - "9700:9000"  # Minio API
+      - "9701:9001"  # Minio Console
+    expose:
+      - "9000"  # Internal API
+      - "9001"  # Internal Console
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: server /data  # Specify the command to start the Minio server
+    networks:
+      - web_chat
+
+  # Jaeger Agent (collects traces from your services)
+#  jaeger-agent:
+#    image: jaegertracing/jaeger-agent:1.45
+#    environment:
+#      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+#    ports:
+#      - "5775:5775/udp"
+#      - "6831:6831/udp"
+#      - "6832:6832/udp"
+#      - "5778:5778"
+#    networks:
+#      - web_chat
+#    depends_on:
+#      - jaeger-collector
+
+  # Jaeger Collector (stores and processes trace data)
+#  jaeger-collector:
+#    image: jaegertracing/jaeger-collector:1.45
+#    environment:
+#      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+#    ports:
+#      - "14250:14250"
+#      - "14267:14267"
+#      - "14268:14268"
+#      - "5778:5778"
+#    networks:
+#      - web_chat
+#    depends_on:
+#      - jaeger-agent
+
+  # Jaeger UI (visualization tool for tracing data)
+#  jaeger-ui:
+#    image: jaegertracing/jaeger-ui:1.45
+#    ports:
+#      - "16686:16686"
+#    networks:
+#      - web_chat
+#    depends_on:
+#      - jaeger-agent
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "5776:5775/udp"   # Jaeger Agent
+      - "6832:6831/udp"   # Jaeger Agent
+      - "6833:6832/udp"   # Jaeger Agent
+      - "5779:5778"       # Jaeger Agent (HTTP)
+      - "14251:14250"     # Jaeger Collector gRPC
+      - "14269:14268"     # Jaeger Collector HTTP
+      - "16687:16686"     # Jaeger UI
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
     networks:
       - web_chat
 
 
+  elasticsearch:
+    image: elasticsearch:7.17.26
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xmx512m -Xms512m
+    ports:
+      - "9200:9200"
+    networks:
+      - web_chat
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data
+
+  # Kibana service
+  kibana:
+    image: kibana:7.17.26
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - web_chat
+    depends_on:
+      - elasticsearch
+
+  # Kafka service
+  kafka:
+    image: wurstmeister/kafka:latest
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_NAME_EXTERNAL: INSIDE
+      KAFKA_LISTENER_PORT: 9093
+      KAFKA_LISTENER_INTERNAL: INSIDE://kafka:9093
+      KAFKA_LISTENER_INTERNAL_PORT: 9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_NAME: INSIDE
+    ports:
+      - "9093:9093"
+    networks:
+      - web_chat
+    depends_on:
+      - zookeeper
+
+  # Zookeeper service (required for Kafka)
+  zookeeper:
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+    networks:
+      - web_chat
+
+  # Logstash service:
+  logstash:
+    image: logstash:7.17.26
+    environment:
+      - LS_JAVA_OPTS=-Xmx512m -Xms512m
+    ports:
+      - "5044:5044"
+    networks:
+      - web_chat
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - kafka
+      - elasticsearch
+
+  sentry:
+    image: sentry:latest
+    ports:
+      - "9900:9000"
+    environment:
+      - SENTRY_SECRET_KEY=Adxod1ccZUMxJK9lL/OKBVF9EuXCnGUXEXRb0Pgx6eQ=
+      - SENTRY_DB_HOST=chat_postgres
+      - SENTRY_DB_NAME=sentry
+      - SENTRY_DB_PORT=5432
+      - SENTRY_DB_USER=devAdmin
+      - SENTRY_DB_PASSWORD=mysecretpassword
+      - SENTRY_REDIS_HOST=chat_redis
+    depends_on:
+      chat_postgres:
+        condition: service_healthy
+    #depends_on:
+    #  - chat_postgres
+    #  - chat_redis
+    networks:
+      - web_chat
+#    command: ["./wait-for-it.sh", "chat_postgres:5432", "--", "sentry", "run", "web"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - web_chat
+    depends_on:
+      - sentry
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+
+    # Grafana service for visualization
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin  # Set the Grafana admin password
+    networks:
+      - web_chat
+    depends_on:
+      - prometheus
+
+  postgres_exporter:
+    image: wrouesnel/postgres_exporter
+    environment:
+      - DATA_SOURCE_NAME=postgresql://sentry:sentrypassword@postgres:5432/sentry
+    ports:
+      - "9187:9187"
+    networks:
+      - web_chat
+    depends_on:
+      - chat_postgres
+
+
+volumes:
+  postgres_data:
+  logs_postgres_data:
+  s3-volume:
+  prometheus_data:
+  es_data:
 
 networks:
   web_chat:

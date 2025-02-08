@@ -1,0 +1,31 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Page Title</title>
+    <link rel="stylesheet" href="{% static 'chat/styles.css' %}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Login</h2>
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+
+        <button type="submit">Login</button>
+    </form>
+    {% if not user.is_authenticated %}
+        <p>Not registered yet? <a href="{% url 'register' %}">Register here</a></p>
+    {% endif %}
+</div>
+
+</body>
+</html>

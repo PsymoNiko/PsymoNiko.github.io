@@ -1,25 +1,43 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10
+FROM python:3.12-slim-bookworm as builder
 
 # Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Set the working directory in the container
-WORKDIR /code
+# Set work directory
+WORKDIR /app
 
-# Copy the requirements file into the container at /code/
-COPY ./requirements.txt /code/
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc libpq-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
+# Copy dependencies file first (leverage caching)
+COPY develop.txt /app/
+#RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r develop.txt
+RUN pip install --no-cache-dir -r develop.txt
+#RUN pip install -r develop.txt
 
-# Copy the current directory contents into the container at /code/
-COPY . /code/
+# Final runtime image
+FROM python:3.12-slim-bookworm
 
-# Expose port 8000 to allow communication to/from server
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Set work directory
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends libpq-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy dependencies and app files
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY . /app/
+
+# Expose application port
 EXPOSE 8000
 
-# Define the command to run the application
-CMD ["gunicorn", "-b", "0.0.0.0:8000", "core.wsgi:application"]
+CMD ["sh", "/app/migrate_run.sh"]
 

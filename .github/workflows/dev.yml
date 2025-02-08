@@ -1,7 +1,6 @@
-
 name: Chat BackEnd Main CD
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -17,21 +16,16 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
 
-      - name: Deploy using ssh
-        uses: appleboy/ssh-action@master
+      - name: Priority List
+        uses: iterative/priority-list@v1.0.2
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 9011
-          script: |
-            
-            cd ~/projects/chat/develop/
-
-            rm -rf backend
-            
-
-            git clone -b dev https://${{ secrets.CLONE_TOKEN }}@github.com/PsymoNiko/PsymoNiko.github.io.git backend
-            
-            cd backend
-            docker compose up --build -d
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repos: 'PsymoNiko/PsymoNiko.github.io'
+          weight_activity: 14
+          weight_reactions: 7
+          weight_staleness: 1
+          weight_age: 0.142857
+          multiplier_pr: 7
+          multiplier_labels: 'example:-1 epic:0.142857 blocked:0.142857 invalid:0.142857'
+          p_label_graveyard: 4
+          slack_webhook: ${{ secrets.SLACK_WEBHOOK }}

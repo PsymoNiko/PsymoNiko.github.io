@@ -1,5 +1,3 @@
-
-
 services:
   # Nginx service
   chat_nginx:
@@ -37,7 +35,7 @@ services:
     depends_on:
       - chat_redis
       - chat_postgres
-      - chat_logs_postgres
+ #     - chat_logs_postgres
 #      - jaeger-agent
     networks:
       - web_chat
@@ -64,14 +62,21 @@ services:
     networks:
       - web_chat
 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devAdmin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Second PostgreSQL service for storing logs
   chat_logs_postgres:
     image: postgres:latest
     container_name: chat-develop-postgres-logs-db-1
     restart: always
     environment:
-      - POSTGRES_USER=logsAdmin
+      - POSTGRES_USER=devAdmin
       - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=devAdmin
     ports:
       - "5862:5432"
     volumes:
@@ -229,18 +234,23 @@ services:
     ports:
       - "9900:9000"
     environment:
-      - SENTRY_SECRET_KEY=slkdfselkofmsdlmfvl;skdmfksdjmfk;lsdmlvf;smdlknkjzfhnksjdkgjdfnjkbngjdfnbgv
-      - SENTRY_DB_HOST=172.19.0.1
+      - SENTRY_SECRET_KEY=Adxod1ccZUMxJK9lL/OKBVF9EuXCnGUXEXRb0Pgx6eQ=
+      - SENTRY_DB_HOST=chat_postgres
       - SENTRY_DB_NAME=sentry
-      - SENTRY_DB_PORT=5861
+      - SENTRY_DB_PORT=5432
       - SENTRY_DB_USER=devAdmin
       - SENTRY_DB_PASSWORD=mysecretpassword
       - SENTRY_REDIS_HOST=chat_redis
     depends_on:
-      - chat_postgres
-      - chat_redis
+      chat_postgres:
+        condition: service_healthy
+    #depends_on:
+    #  - chat_postgres
+    #  - chat_redis
     networks:
       - web_chat
+#    command: ["./wait-for-it.sh", "chat_postgres:5432", "--", "sentry", "run", "web"]
+
   prometheus:
     image: prom/prometheus:latest
     ports:
